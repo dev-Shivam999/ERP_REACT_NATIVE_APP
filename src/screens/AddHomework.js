@@ -107,12 +107,31 @@ const AddHomework = ({ navigation }) => {
 
             const response = await teacherAPI.uploadHomework(payload);
             if (response.data.success) {
-                Alert.alert('Success', 'Homework assigned successfully', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
-                ]);
+                // Reset form
+                setTitle('');
+                setDescription('');
+                setDueDate(new Date());
+
+                // Show success message
+                Alert.alert(
+                    '✅ Success!',
+                    'Homework has been assigned successfully to all students.',
+                    [
+                        {
+                            text: 'View Homework',
+                            onPress: () => navigation.navigate('TeacherHomeworkList')
+                        },
+                        {
+                            text: 'Add Another',
+                            style: 'cancel'
+                        }
+                    ]
+                );
+            } else {
+                Alert.alert('Error', response.data.message || 'Failed to assign homework');
             }
         } catch (error) {
-            Alert.alert('Error', 'Failed to assign homework');
+            Alert.alert('Error', error.response?.data?.message || 'Failed to assign homework. Please try again.');
             console.error(error);
         } finally {
             setLoading(false);

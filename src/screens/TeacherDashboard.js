@@ -124,9 +124,9 @@ const TeacherDashboard = ({ navigation }) => {
                     <Text style={styles.actionIcon}>📚</Text>
                     <Text style={styles.actionText}>Add Homework</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Text style={styles.actionIcon}>📝</Text>
-                    <Text style={styles.actionText}>Enter Marks</Text>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('ActiveExams')}>
+                    <Text style={styles.actionIcon}>🗓️</Text>
+                    <Text style={styles.actionText}>Active Exams</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Salary')}>
                     <Text style={styles.actionIcon}>💰</Text>

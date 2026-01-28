@@ -19,6 +19,10 @@ import HomeworkStatus from '../screens/HomeworkStatus';
 import TeacherHomeworkList from '../screens/TeacherHomeworkList';
 import Profile from '../screens/Profile';
 import Salary from '../screens/Salary';
+import ActiveExams from '../screens/ActiveExams';
+import AdmitCardView from '../screens/AdmitCardView';
+import Teachers from '../screens/Teachers';
+import Attendance from '../screens/Attendance';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -49,7 +53,7 @@ const StudentTabs = () => (
         />
         <Tab.Screen
             name="Attendance"
-            component={PlaceholderScreen('Attendance')}
+            component={Attendance}
             options={{
                 tabBarIcon: ({ focused }) => <TabIcon icon="📅" label="Attendance" focused={focused} />,
             }}
@@ -178,6 +182,26 @@ const AppNavigator = () => {
                     name="StudentList"
                     component={StudentList}
                     options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="ActiveExams"
+                    component={ActiveExams}
+                    options={{ title: 'Active Exams' }}
+                />
+                <Stack.Screen
+                    name="AdmitCardView"
+                    component={AdmitCardView}
+                    options={{ title: 'Admit Card' }}
+                />
+                <Stack.Screen
+                    name="Teachers"
+                    component={Teachers}
+                    options={{ title: 'My Teachers' }}
+                />
+                <Stack.Screen
+                    name="StudentHomework"
+                    component={StudentHomework}
+                    options={{ title: 'My Homework' }}
                 />
             </Stack.Navigator>
         </NavigationContainer>

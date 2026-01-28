@@ -33,8 +33,10 @@ export const studentAPI = {
     getAttendance: (month, year) => api.get('/attendance/student/me', { params: { month, year } }),
     getFees: () => api.get('/fees/student/me'),
     getResults: () => api.get('/results/student/me'),
-    getHomework: (studentId) => api.get(`/homework/student/${studentId}`),
+    getHomework: (studentId, days) => api.get(`/homework/student/${studentId}`, { params: days ? { days } : {} }),
+    getMyHomework: (days) => api.get('/homework/me', { params: days ? { days } : {} }), // New
     getNotifications: () => api.get('/notifications/me'),
+    getTeachers: () => api.get('/students/me/teachers'),
 };
 
 // Teacher APIs
@@ -56,6 +58,12 @@ export const attendanceAPI = {
     getStudentAttendance: (studentId, month, year) => api.get(`/attendance/student/${studentId}`, { params: { month, year } }),
     getAttendanceSummary: (date) => api.get(`/attendance/summary/${date}`),
     getMonthlyReport: (month, year, classId) => api.get('/attendance/monthly', { params: { month, year, classId } }),
+};
+
+// Exam APIs
+export const examAPI = {
+    getActiveExams: () => api.get('/exams/active'),
+    getAdmitCard: (examId) => api.get(`/exams/${examId}/admit-card`),
 };
 
 export default api;

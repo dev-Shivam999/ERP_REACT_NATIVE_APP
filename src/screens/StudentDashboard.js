@@ -19,11 +19,12 @@ const StudentDashboard = ({ navigation }) => {
         presentDays: 0,
         totalDays: 0,
         pendingFees: 0,
-        lastExamPercent: 0,
-        rank: 0,
+        homeworkTotal: 0,
+        homeworkCompleted: 0,
     });
 
     const [notifications, setNotifications] = useState([]);
+    const [profile, setProfile] = useState(null);
 
     useEffect(() => {
         loadUser();
@@ -32,17 +33,67 @@ const StudentDashboard = ({ navigation }) => {
 
     const fetchData = async () => {
         try {
-            const feeRes = await studentAPI.getFees();
-            const notifRes = await studentAPI.getNotifications();
+            console.log('📊 Fetching dashboard data...');
+
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+
+            const promises = [
+                studentAPI.getFees(),
+                studentAPI.getProfile(),
+                studentAPI.getMyHomework(30), // Use new /homework/me endpoint
+                studentAPI.getAttendance(currentMonth, currentYear), // Get current month attendance
+                // Skip notifications for now - endpoint doesn't exist yet
+            ];
+
+            const results = await Promise.all(promises);
+            const [feeRes, profileRes, homeworkRes, attendanceRes] = results;
+
+            console.log('💰 Fee response:', feeRes.data);
+            console.log('👤 Profile response:', profileRes.data);
+            console.log('📚 Homework response:', homeworkRes.data);
+            console.log('📅 Attendance response:', attendanceRes.data);
 
             if (feeRes.data.success) {
                 setStats(prev => ({ ...prev, pendingFees: feeRes.data.data.totals.totalPending }));
             }
-            if (notifRes.data.success) {
-                setNotifications(notifRes.data.data.slice(0, 5));
+
+            if (profileRes.data.success) {
+                setProfile(profileRes.data.data);
             }
+
+            console.log('📚 Homework check:', {
+                hasResponse: !!homeworkRes,
+                success: homeworkRes?.data?.success,
+                hasStats: !!homeworkRes?.data?.stats,
+                stats: homeworkRes?.data?.stats,
+                dataLength: homeworkRes?.data?.data?.length
+            });
+
+            if (homeworkRes && homeworkRes.data.success && homeworkRes.data.stats) {
+                console.log('✅ Setting homework stats:', homeworkRes.data.stats);
+                setStats(prev => ({
+                    ...prev,
+                    homeworkTotal: homeworkRes.data.stats.total,
+                    homeworkCompleted: homeworkRes.data.stats.completed
+                }));
+            } else {
+                console.log('❌ Homework stats not found in response');
+            }
+
+            if (attendanceRes && attendanceRes.data.success && attendanceRes.data.data.statistics) {
+                const attStats = attendanceRes.data.data.statistics;
+                setStats(prev => ({
+                    ...prev,
+                    attendancePercent: attStats.percentage || 0,
+                    presentDays: attStats.present || 0,
+                    totalDays: attStats.total || 0
+                }));
+            }
+
+            console.log('✅ Dashboard data loaded');
         } catch (error) {
-            console.error('Fetch dashboard data error:', error);
+            console.error('❌ Fetch dashboard data error:', error);
         }
     };
 
@@ -79,8 +130,12 @@ const StudentDashboard = ({ navigation }) => {
                 </View>
                 <View>
                     <Text style={styles.welcome}>Welcome Back! 👋</Text>
-                    <Text style={styles.studentName}>{user?.profile?.firstName || 'Student'}</Text>
-                    <Text style={styles.classInfo}>Class 5-A | Roll No: 12</Text>
+                    <Text style={styles.studentName}>
+                        {profile ? `${profile.first_name} ${profile.last_name || ''}` : (user?.profile?.firstName || 'Student')}
+                    </Text>
+                    <Text style={styles.classInfo}>
+                        {profile ? `${profile.class_name} - ${profile.section_name} | Roll: ${profile.roll_number || 'N/A'}` : 'Loading...'}
+                    </Text>
                 </View>
             </View>
 
@@ -98,32 +153,30 @@ const StudentDashboard = ({ navigation }) => {
                     <Text style={styles.statLabel}>Pending Fees</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.statCard, styles.statResults]} onPress={() => navigation.navigate('Results')}>
-                    <Text style={styles.statIcon}>📊</Text>
-                    <Text style={styles.statValue}>{stats.lastExamPercent}%</Text>
-                    <Text style={styles.statLabel}>Last Exam</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.statCard, styles.statRank]}>
-                    <Text style={styles.statIcon}>🏆</Text>
-                    <Text style={styles.statValue}>#{stats.rank}</Text>
-                    <Text style={styles.statLabel}>Class Rank</Text>
+                <TouchableOpacity style={[styles.statCard, styles.statHomework]} onPress={() => navigation.navigate('StudentHomework')}>
+                    <Text style={styles.statIcon}>📚</Text>
+                    <Text style={styles.statValue}>{stats.homeworkTotal}</Text>
+                    <Text style={styles.statLabel}>Total Homework</Text>
                 </TouchableOpacity>
             </View>
 
             {/* Quick Actions */}
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActions}>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Text style={styles.actionIcon}>📖</Text>
-                    <Text style={styles.actionText}>Timetable</Text>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('ActiveExams')}>
+                    <Text style={styles.actionIcon}>📅</Text>
+                    <Text style={styles.actionText}>Exams</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Teachers')}>
+                    <Text style={styles.actionIcon}>👨‍🏫</Text>
+                    <Text style={styles.actionText}>Teachers</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('StudentHomework')}>
                     <Text style={styles.actionIcon}>📝</Text>
                     <Text style={styles.actionText}>Homework</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
-                    <Text style={styles.actionIcon}>📅</Text>
+                    <Text style={styles.actionIcon}>🏖️</Text>
                     <Text style={styles.actionText}>Holidays</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
@@ -210,6 +263,7 @@ const styles = StyleSheet.create({
     statFees: { backgroundColor: '#fef3c7' },
     statResults: { backgroundColor: '#ede9fe' },
     statRank: { backgroundColor: '#fce7f3' },
+    statHomework: { backgroundColor: '#dbeafe' },
     statIcon: {
         fontSize: 28,
         marginBottom: 8,
@@ -234,11 +288,12 @@ const styles = StyleSheet.create({
     },
     quickActions: {
         flexDirection: 'row',
+        flexWrap: 'wrap',
         paddingHorizontal: 16,
         gap: 12,
     },
     actionButton: {
-        flex: 1,
+        width: '47%', // Fits 2 in a row with gap
         backgroundColor: '#fff',
         padding: 16,
         borderRadius: 12,
