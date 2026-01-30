@@ -16,17 +16,23 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.shivam.erpapp",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "@react-native-community/datetimepicker"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "fecfe46d-66db-4612-8920-5285a69e0d1c"
+      }
+    }
   }
 }

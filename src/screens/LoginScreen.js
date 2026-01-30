@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { authAPI } from '../services/api';
+import { syncTokenWithBackend } from '../utils/notifications';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState('');
@@ -33,6 +34,9 @@ const LoginScreen = ({ navigation }) => {
                 await AsyncStorage.setItem('user', JSON.stringify(response.data.data.user));
 
                 const role = response.data.data.user.role;
+
+                // Sync FCM Token
+                await syncTokenWithBackend();
 
                 // Navigate based on role
                 if (role === 'student' || role === 'parent') {

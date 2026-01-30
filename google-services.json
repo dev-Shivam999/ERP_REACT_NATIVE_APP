@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "985433985243",
+    "project_id": "test-7c438",
+    "storage_bucket": "test-7c438.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:985433985243:android:6bbaca5bbae7571109bcfe",
+        "android_client_info": {
+          "package_name": "com.shivam.erpapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCTkRNHWq0nBku_w793KbK5uI08_R5jIAk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

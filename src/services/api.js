@@ -25,6 +25,7 @@ api.interceptors.request.use(async (config) => {
 export const authAPI = {
     login: (email, password) => api.post('/auth/login', { email, password }),
     getCurrentUser: () => api.get('/auth/me'),
+    updateFcmToken: (fcmToken) => api.post('/auth/update-fcm-token', { fcmToken }),
 };
 
 // Student APIs
