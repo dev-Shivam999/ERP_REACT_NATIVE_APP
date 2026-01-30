@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 // Import screens
 import LoginScreen from '../screens/LoginScreen';
@@ -23,6 +24,10 @@ import ActiveExams from '../screens/ActiveExams';
 import AdmitCardView from '../screens/AdmitCardView';
 import Teachers from '../screens/Teachers';
 import Attendance from '../screens/Attendance';
+import CertificateRequest from '../screens/CertificateRequest';
+import CertificateStatus from '../screens/CertificateStatus';
+import AdminCertificateRequests from '../screens/AdminCertificateRequests';
+import CertificateView from '../screens/CertificateView';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -203,7 +208,28 @@ const AppNavigator = () => {
                     component={StudentHomework}
                     options={{ title: 'My Homework' }}
                 />
+                <Stack.Screen
+                    name="CertificateRequest"
+                    component={CertificateRequest}
+                    options={{ title: 'Apply Certificate' }}
+                />
+                <Stack.Screen
+                    name="CertificateStatus"
+                    component={CertificateStatus}
+                    options={{ title: 'My Certificates' }}
+                />
+                <Stack.Screen
+                    name="AdminCertificateRequests"
+                    component={AdminCertificateRequests}
+                    options={{ title: 'Certificate Requests' }}
+                />
+                <Stack.Screen
+                    name="CertificateView"
+                    component={CertificateView}
+                    options={{ title: 'Certificate' }}
+                />
             </Stack.Navigator>
+            <Toast />
         </NavigationContainer>
     );
 };

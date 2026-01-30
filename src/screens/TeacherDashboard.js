@@ -128,6 +128,12 @@ const TeacherDashboard = ({ navigation }) => {
                     <Text style={styles.actionIcon}>🗓️</Text>
                     <Text style={styles.actionText}>Active Exams</Text>
                 </TouchableOpacity>
+                {user?.role === 'admin' && (
+                    <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('AdminCertificateRequests')}>
+                        <Text style={styles.actionIcon}>📄</Text>
+                        <Text style={styles.actionText}>Certificate Requests</Text>
+                    </TouchableOpacity>
+                )}
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Salary')}>
                     <Text style={styles.actionIcon}>💰</Text>
                     <Text style={styles.actionText}>Salary Slip</Text>

@@ -85,77 +85,108 @@ const AdmitCardView = ({ route, navigation }) => {
             <html>
             <head>
                 <style>
-                    body { font-family: 'Helvetica', sans-serif; padding: 20px; }
-                    .header { margin-bottom: 20px; }
-                    .school-name { font-size: 24px; font-weight: bold; margin: 0; text-align: center; }
-                    .school-address { font-size: 12px; margin: 5px 0; text-align: center; color: #555; }
-                    .title-container { text-align: center; margin: 15px 0; }
-                    .title { font-weight: bold; display: inline-block; }
+                    @page { margin: 10mm; }
+                    body { font-family: 'Helvetica', sans-serif; padding: 0; margin: 0; }
+                    .card-container { border: 2px solid #000; padding: 15px; position: relative; min-height: 95vh; }
+                    .outer-border { border: 5px double #000; padding: 10px; }
                     
-                    .student-info { margin-bottom: 20px; position: relative; }
-                    .info-row { margin-bottom: 5px; font-size: 14px; }
-                    .label { font-weight: bold; display: inline-block; width: 120px; }
+                    .header { display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 15px; }
+                    .logo { width: 80px; height: 80px; margin-right: 15px; }
+                    .school-info { flex: 1; text-align: center; }
+                    .school-name { font-size: 26px; font-weight: 900; color: #000; text-transform: uppercase; margin: 0; }
+                    .school-address { font-size: 12px; margin: 3px 0; }
                     
-                    .table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-                    .table th, .table td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 13px; }
-                    .table th { background-color: #f0f0f0; }
+                    .exam-title-box { background: #000; color: #fff; text-align: center; padding: 5px; margin: 10px 0; }
+                    .exam-title { font-size: 18px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
                     
-                    .footer { margin-top: 50px; display: flex; justify-content: space-between; padding-top: 10px; }
-                    .sig-box { text-align: center; width: 30%; border-top: 1px solid #000; padding-top: 5px; font-size: 12px; }
+                    .student-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+                    .info-item { font-size: 14px; margin-bottom: 5px; }
+                    .label { font-weight: bold; display: inline-block; width: 100px; }
+                    .value { border-bottom: 1px dotted #666; flex: 1; }
                     
-                    /* Custom CSS Injection */
-                    ${customCSS}
+                    .photo-box { width: 100px; height: 120px; border: 1px solid #000; position: absolute; right: 25px; top: 120px; text-align: center; font-size: 10px; display: flex; align-items: center; justify-content: center; background: #f9f9f9; }
+                    
+                    .table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    .table th, .table td { border: 1px solid #000; padding: 8px; text-align: center; font-size: 13px; }
+                    .table th { background-color: #eee; text-transform: uppercase; }
+                    
+                    .footer { margin-top: 60px; display: flex; justify-content: space-between; }
+                    .sig-box { text-align: center; width: 30%; font-size: 12px; }
+                    .sig-line { border-top: 1px solid #000; margin-top: 40px; padding-top: 5px; }
+                    
+                    .instructions { margin-top: 30px; border-top: 1px dashed #666; padding-top: 10px; }
+                    .instr-title { font-size: 12px; font-weight: bold; margin-bottom: 5px; }
+                    .instr-list { font-size: 10px; padding-left: 20px; }
                 </style>
             </head>
             <body>
-                <div class="card-container">
-                    <div class="header">
-                        <div class="school-name">${exam.school_name || 'School Name'}</div>
-                        <div class="school-address">${exam.school_address || 'Address not available'}</div>
-                    </div>
-                    
-                    <div class="title-container">
-                        <div class="title">${exam.exam_type} ADMIT CARD</div>
-                    </div>
-                    
-                    <div class="student-info">
-                        ${template === 'final' ? '<div class="photo-box">PHOTO</div>' : ''}
-                        <div class="info-row"><span class="label">Exam Name:</span> ${exam.exam_name}</div>
-                        <div class="info-row"><span class="label">Student Name:</span> ${exam.student_name}</div>
-                        <div class="info-row"><span class="label">Admission No:</span> ${exam.admission_number}</div>
-                        <div class="info-row"><span class="label">Class/Section:</span> ${exam.class_name} - ${exam.section_name}</div>
-                        <div class="info-row"><span class="label">Roll Number:</span> ${exam.roll_number || 'N/A'}</div>
-                    </div>
+                <div class="outer-border">
+                    <div class="card-container">
+                        <div class="header">
+                            ${exam.school_logo ? `<img src="${exam.school_logo}" class="logo" />` : '<div class="logo" style="border: 1px solid #ccc; background: #eee; display: flex; align-items: center; justify-content: center; font-size: 10px;">LOGO</div>'}
+                            <div class="school-info">
+                                <h1 class="school-name">${exam.school_name}</h1>
+                                <p class="school-address">${exam.school_address}</p>
+                                <p class="school-address">Phone: ${exam.school_phone || 'N/A'} | Email: ${exam.school_email || 'N/A'}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="exam-title-box">
+                            <div class="exam-title">ADMIT CARD - ${exam.exam_name}</div>
+                        </div>
+                        
+                        <div class="student-grid">
+                            <div class="info-item"><span class="label">Roll No:</span> <span class="value">${exam.roll_number || 'N/A'}</span></div>
+                            <div class="info-item"><span class="label">Adm No:</span> <span class="value">${exam.admission_number}</span></div>
+                            <div class="info-item"><span class="label">Name:</span> <span class="value">${exam.student_name}</span></div>
+                            <div class="info-item"><span class="label">Class:</span> <span class="value">${exam.class_name} - ${exam.section_name}</span></div>
+                            <div class="info-item"><span class="label">Father:</span> <span class="value">${exam.father_name || 'N/A'}</span></div>
+                        </div>
+                        
+                        <div class="photo-box">Passport Size Photo</div>
 
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Time</th>
-                                <th>Subject</th>
-                                ${template !== 'compact' ? '<th>Invigilator</th>' : ''}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${schedule.map(item => `
+                        <table class="table">
+                            <thead>
                                 <tr>
-                                    <td>${new Date(item.exam_date).toLocaleDateString()}</td>
-                                    <td>${item.start_time.substring(0, 5)} - ${item.end_time.substring(0, 5)}</td>
-                                    <td>${item.subject_name}</td>
-                                    ${template !== 'compact' ? '<td></td>' : ''}
+                                    <th style="width: 15%;">Date</th>
+                                    <th style="width: 20%;">Time</th>
+                                    <th style="flex: 1;">Subject</th>
+                                    <th style="width: 25%;">Invigilator Signature</th>
                                 </tr>
-                            `).join('')}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                ${schedule.map(item => `
+                                    <tr>
+                                        <td>${new Date(item.exam_date).toLocaleDateString('en-GB')}</td>
+                                        <td>${item.start_time.substring(0, 5)} - ${item.end_time.substring(0, 5)}</td>
+                                        <td style="text-align: left; font-weight: bold;">${item.subject_name}</td>
+                                        <td></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
 
-                    <div class="footer">
-                        <div class="sig-box">Class Teacher</div>
-                        ${template === 'final' ? '<div class="sig-box">Exam Controller</div>' : ''}
-                        <div class="sig-box">Principal</div>
-                    </div>
-                    
-                    <div style="margin-top: 15px; font-size: 10px; text-align: center; color: #777;">
-                        Card ID: ${card.id.split('-')[0]} | Generated: ${new Date().toLocaleDateString()}
+                        <div class="instructions">
+                            <div class="instr-title">INSTRUCTIONS FOR CANDIDATES:</div>
+                            <ul class="instr-list">
+                                <li>Candidates must bring this Admit Card to the examination hall.</li>
+                                <li>Report 15 minutes before the commencement of the exam.</li>
+                                <li>No electronic gadgets (calculators, mobile phones) are allowed.</li>
+                                <li>Use of unfair means will lead to disqualification.</li>
+                            </ul>
+                        </div>
+
+                        <div class="footer">
+                            <div class="sig-box">
+                                <div class="sig-line">Class Teacher</div>
+                            </div>
+                            <div class="sig-box">
+                                <div class="sig-line">Exam Controller</div>
+                            </div>
+                            <div class="sig-box">
+                                <div class="sig-line">Principal</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </body>

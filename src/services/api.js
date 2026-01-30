@@ -1,5 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Network from 'expo-network';
+import Toast from 'react-native-toast-message';
 
 // Change this to your backend URL
 const API_BASE_URL = 'http://localhost:5000/api'; // Use your computer's IP
@@ -12,8 +14,19 @@ const api = axios.create({
     timeout: 10000,
 });
 
-// Add token to requests
+// Add token and network check to requests
 api.interceptors.request.use(async (config) => {
+    // Check network connectivity
+    const networkState = await Network.getNetworkStateAsync();
+    if (!networkState.isConnected) {
+        Toast.show({
+            type: 'error',
+            text1: 'Offline',
+            text2: 'You are currently offline. Please check your connection.',
+        });
+        return Promise.reject(new Error('OFFLINE'));
+    }
+
     const token = await AsyncStorage.getItem('token');
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -21,11 +34,42 @@ api.interceptors.request.use(async (config) => {
     return config;
 });
 
+// Add error handling to responses
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.message === 'OFFLINE') {
+            return Promise.reject(error);
+        }
+
+        if (error.code === 'ECONNABORTED' || !error.response || error.response.status >= 500) {
+            Toast.show({
+                type: 'error',
+                text1: 'Server Busy',
+                text2: 'Our servers are currently busy. Please try again later.',
+            });
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 // Auth APIs
 export const authAPI = {
     login: (email, password) => api.post('/auth/login', { email, password }),
     getCurrentUser: () => api.get('/auth/me'),
     updateFcmToken: (fcmToken) => api.post('/auth/update-fcm-token', { fcmToken }),
+};
+
+// Certificate APIs
+export const certificateAPI = {
+    request: (data) => api.post('/certificates/request', data),
+    getMyRequests: () => api.get('/certificates/my-requests'),
+    getPending: () => api.get('/certificates/pending'),
+    getToday: () => api.get('/certificates/today'),
+    updateStatus: (id, data) => api.put(`/certificates/${id}/status`, data),
+    delete: (id) => api.delete(`/certificates/${id}`),
+    getData: (id) => api.get(`/certificates/${id}/data`),
 };
 
 // Student APIs

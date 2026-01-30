@@ -179,9 +179,9 @@ const StudentDashboard = ({ navigation }) => {
                     <Text style={styles.actionIcon}>🏖️</Text>
                     <Text style={styles.actionText}>Holidays</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('CertificateRequest')}>
                     <Text style={styles.actionIcon}>📄</Text>
-                    <Text style={styles.actionText}>Report Card</Text>
+                    <Text style={styles.actionText}>Certificates</Text>
                 </TouchableOpacity>
             </View>
 
