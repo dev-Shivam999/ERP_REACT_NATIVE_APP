@@ -7,13 +7,15 @@ import {
     Image,
     TouchableOpacity,
     ActivityIndicator,
-    Linking
+    Linking,
+    RefreshControl,
 } from 'react-native';
 import { studentAPI } from '../services/api';
 
 const Teachers = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [teachers, setTeachers] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchTeachers();
@@ -29,7 +31,13 @@ const Teachers = ({ navigation }) => {
             console.error('Fetch teachers error:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchTeachers();
     };
 
     const handleCall = (phone) => {
@@ -95,6 +103,7 @@ const Teachers = ({ navigation }) => {
                 renderItem={renderTeacher}
                 keyExtractor={item => item.id}
                 contentContainerStyle={styles.list}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4f46e5']} />}
                 ListEmptyComponent={
                     <View style={styles.center}>
                         <Text style={styles.emptyText}>No teachers assigned yet.</Text>

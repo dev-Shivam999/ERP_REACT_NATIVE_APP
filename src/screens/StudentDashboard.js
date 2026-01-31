@@ -177,7 +177,7 @@ const StudentDashboard = ({ navigation }) => {
                     <Text style={styles.actionText}>Teachers</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('StudentHomework')}>
-                    <Text style={styles.actionIcon}>📝</Text>
+                    <Text style={styles.actionIcon}>📖</Text>
                     <Text style={styles.actionText}>Homework</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Results')}>

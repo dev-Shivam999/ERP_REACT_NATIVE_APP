@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, TouchableOpacity, Alert, RefreshControl } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 
 const Profile = () => {
+    const navigation = useNavigation();
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchProfile();
@@ -20,14 +24,44 @@ const Profile = () => {
             console.error('Fetch profile error:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchProfile();
+    };
+
+    const handleLogout = () => {
+        Alert.alert(
+            'Logout',
+            'Are you sure you want to logout?',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Logout',
+                    style: 'destructive',
+                    onPress: async () => {
+                        await AsyncStorage.multiRemove(['token', 'user']);
+                        navigation.reset({
+                            index: 0,
+                            routes: [{ name: 'Login' }],
+                        });
+                    },
+                },
+            ]
+        );
     };
 
     if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#4f46e5" /></View>;
     if (!profile) return <View style={styles.center}><Text>Failed to load profile</Text></View>;
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4f46e5']} />}
+        >
             <View style={styles.header}>
                 <View style={[styles.avatarContainer, { backgroundColor: '#e0e7ff' }]}>
                     {profile.photo_url ? (
@@ -76,6 +110,12 @@ const Profile = () => {
                     <Text style={styles.value}>{new Date(profile.joining_date).toLocaleDateString()}</Text>
                 </View>
             </View>
+
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <Text style={styles.logoutText}>🚪 Logout</Text>
+            </TouchableOpacity>
+
+            <View style={{ height: 40 }} />
         </ScrollView>
     );
 };
@@ -94,7 +134,18 @@ const styles = StyleSheet.create({
     sectionTitle: { fontSize: 18, fontWeight: '600', color: '#111827', marginBottom: 16 },
     row: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' },
     label: { color: '#6b7280', fontSize: 15 },
-    value: { color: '#374151', fontSize: 15, fontWeight: '500', maxWidth: '60%', textAlign: 'right' }
+    value: { color: '#374151', fontSize: 15, fontWeight: '500', maxWidth: '60%', textAlign: 'right' },
+    logoutButton: {
+        marginTop: 24,
+        marginHorizontal: 16,
+        backgroundColor: '#fef2f2',
+        padding: 16,
+        borderRadius: 12,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#fecaca'
+    },
+    logoutText: { color: '#dc2626', fontWeight: '700', fontSize: 16 }
 });
 
 export default Profile;

@@ -4,8 +4,8 @@ import * as Network from 'expo-network';
 import Toast from 'react-native-toast-message';
 
 
-// const API_BASE_URL = 'http://localhost:5000/api'; 
-const API_BASE_URL = 'https://erp-backend-97nf.onrender.com/api'; 
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://erp-backend-97nf.onrender.com/api';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -60,6 +60,7 @@ export const authAPI = {
     login: (email, password) => api.post('/auth/login', { email, password }),
     getCurrentUser: () => api.get('/auth/me'),
     updateFcmToken: (fcmToken) => api.post('/auth/update-fcm-token', { fcmToken }),
+    checkFcmToken: () => api.get('/auth/check-fcm-token'),
 };
 
 // Certificate APIs

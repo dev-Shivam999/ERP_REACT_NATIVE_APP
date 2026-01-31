@@ -6,6 +6,7 @@ import {
     ActivityIndicator,
     ScrollView,
     TouchableOpacity,
+    RefreshControl,
 } from 'react-native';
 import { studentAPI } from '../services/api';
 
@@ -15,6 +16,7 @@ const Attendance = () => {
     const [stats, setStats] = useState({ present: 0, absent: 0, total: 0, percentage: 0 });
     const [currentMonth, setCurrentMonth] = useState(new Date().getMonth() + 1);
     const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchAttendance();
@@ -36,7 +38,13 @@ const Attendance = () => {
             console.error('❌ Fetch attendance error:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchAttendance();
     };
 
     const getMonthName = (month) => {
@@ -91,7 +99,10 @@ const Attendance = () => {
     }
 
     return (
-        <ScrollView style={styles.container}>
+        <ScrollView
+            style={styles.container}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4f46e5']} />}
+        >
             {/* Month Selector */}
             <View style={styles.monthSelector}>
                 <TouchableOpacity onPress={() => changeMonth(-1)} style={styles.monthBtn}>

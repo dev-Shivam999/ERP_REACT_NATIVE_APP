@@ -37,14 +37,10 @@ const LoginScreen = ({ navigation }) => {
 
                 const role = response.data.data.user.role;
 
-                // Sync FCM Token
-                await syncTokenWithBackend();
-
-                // Navigate based on role
-                if (role === 'student' || role === 'parent') {
-                    navigation.replace('StudentTabs');
-                } else if (role === 'teacher') {
-                    navigation.replace('TeacherTabs');
+                // Navigate to notification permission check screen
+                // It will handle FCM token verification and then navigate to appropriate tabs
+                if (role === 'student' || role === 'parent' || role === 'teacher') {
+                    navigation.replace('NotificationPermission', { userRole: role });
                 } else {
                     Alert.alert('Error', 'Please use web admin panel for this role');
                 }

@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, Platform, RefreshControl } from 'react-native';
 import { downloadPDF } from '../utils/downloadHelper';
 import api from '../services/api';
 import { useEffect, useState } from 'react';
@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 const Salary = () => {
     const [salaryHistory, setSalaryHistory] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchSalary();
@@ -21,7 +22,13 @@ const Salary = () => {
             console.error('Fetch salary error:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = () => {
+        setRefreshing(true);
+        fetchSalary();
     };
 
     const getMonthName = (month) => {
@@ -164,6 +171,7 @@ const Salary = () => {
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.list}
+                    refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#4f46e5']} />}
                 />
             )}
         </View>

@@ -6,6 +6,7 @@ import {
     FlatList,
     ActivityIndicator,
     SafeAreaView,
+    RefreshControl,
 } from 'react-native';
 import api, { studentAPI } from '../services/api';
 import { downloadPDF } from '../utils/downloadHelper';
@@ -17,6 +18,7 @@ const FeesScreen = () => {
     const [fees, setFees] = useState([]);
     const [totals, setTotals] = useState({ totalDue: 0, totalPaid: 0, totalPending: 0 });
     const [studentProfile, setStudentProfile] = useState(null);
+    const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
         fetchFees();
@@ -33,6 +35,7 @@ const FeesScreen = () => {
             console.error('Fetch fees error:', error);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
 
         // Fetch profile for receipt info
@@ -208,6 +211,7 @@ const FeesScreen = () => {
                 contentContainerStyle={styles.listContent}
                 ListHeaderComponent={<Text style={styles.listTitle}>Fee Breakup</Text>}
                 ListEmptyComponent={<Text style={styles.emptyText}>No fee records found.</Text>}
+                refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchFees(); }} colors={['#4f46e5']} />}
             />
         </SafeAreaView>
     );

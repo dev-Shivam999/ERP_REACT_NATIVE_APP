@@ -29,6 +29,8 @@ import CertificateRequest from '../screens/CertificateRequest';
 import CertificateStatus from '../screens/CertificateStatus';
 import AdminCertificateRequests from '../screens/AdminCertificateRequests';
 import CertificateView from '../screens/CertificateView';
+import StudentProfile from '../screens/StudentProfile';
+import NotificationPermission from '../screens/NotificationPermission';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -80,7 +82,7 @@ const StudentTabs = () => (
         />
         <Tab.Screen
             name="Profile"
-            component={PlaceholderScreen('Profile')}
+            component={StudentProfile}
             options={{
                 tabBarIcon: ({ focused }) => <TabIcon icon="👤" label="Profile" focused={focused} />,
             }}
@@ -195,6 +197,11 @@ const AppNavigator = () => {
                 <Stack.Screen
                     name="StudentTabs"
                     component={StudentTabs}
+                    options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                    name="NotificationPermission"
+                    component={NotificationPermission}
                     options={{ headerShown: false }}
                 />
                 <Stack.Screen
