@@ -3,8 +3,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Network from 'expo-network';
 import Toast from 'react-native-toast-message';
 
-// Change this to your backend URL
-const API_BASE_URL = 'http://localhost:5000/api'; // Use your computer's IP
+
+// const API_BASE_URL = 'http://localhost:5000/api'; 
+const API_BASE_URL = 'https://erp-backend-97nf.onrender.com/api'; 
 
 const api = axios.create({
     baseURL: API_BASE_URL,
