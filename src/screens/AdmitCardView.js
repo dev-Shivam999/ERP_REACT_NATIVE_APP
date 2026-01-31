@@ -14,7 +14,7 @@ import { examAPI } from '../services/api';
 import { downloadPDF } from '../utils/downloadHelper';
 
 const AdmitCardView = ({ route, navigation }) => {
-    const { examId } = route.params;
+    const { examId, studentId } = route.params;
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState(null);
 
@@ -24,7 +24,7 @@ const AdmitCardView = ({ route, navigation }) => {
 
     const fetchAdmitCard = async () => {
         try {
-            const response = await examAPI.getAdmitCard(examId);
+            const response = await examAPI.getAdmitCard(examId, studentId);
             if (response.data.success) {
                 setData(response.data.data);
             }

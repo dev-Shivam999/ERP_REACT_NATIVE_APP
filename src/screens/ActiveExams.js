@@ -9,14 +9,24 @@ import {
     RefreshControl
 } from 'react-native';
 import { examAPI } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ActiveExams = ({ navigation }) => {
     const [loading, setLoading] = useState(true);
     const [exams, setExams] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [expandedExam, setExpandedExam] = useState(null);
+    const [userRole, setUserRole] = useState('student');
 
     useEffect(() => {
+        const loadUser = async () => {
+            const userData = await AsyncStorage.getItem('user');
+            if (userData) {
+                const user = JSON.parse(userData);
+                setUserRole(user.role);
+            }
+        };
+        loadUser();
         fetchActiveExams();
     }, []);
 
@@ -103,12 +113,14 @@ const ActiveExams = ({ navigation }) => {
                             <Text style={styles.noSchedule}>No schedule details available.</Text>
                         )}
 
-                        <TouchableOpacity
+                       {userRole=="student"&& <TouchableOpacity
                             style={styles.admitCardButton}
                             onPress={() => navigation.navigate('AdmitCardView', { examId: item.id })}
                         >
-                            <Text style={styles.admitCardButtonText}>📄 View Admit Card</Text>
-                        </TouchableOpacity>
+                            <Text style={styles.admitCardButtonText}>
+                                {userRole === 'student' ? '📄 View Admit Card' : '👥 View Student Admit Cards'}
+                            </Text>
+                        </TouchableOpacity>}
                     </View>
                 )}
             </View>

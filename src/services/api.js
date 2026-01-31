@@ -108,7 +108,8 @@ export const attendanceAPI = {
 // Exam APIs
 export const examAPI = {
     getActiveExams: () => api.get('/exams/active'),
-    getAdmitCard: (examId) => api.get(`/exams/${examId}/admit-card`),
+    getAdmitCard: (examId, studentId) => api.get(`/exams/${examId}/admit-card`, { params: studentId ? { studentId } : {} }),
+    getExamStudents: (examId, params) => api.get(`/exams/${examId}/admit-card-status`, { params }),
 };
 
 export default api;
