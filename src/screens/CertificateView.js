@@ -10,8 +10,7 @@ import {
     SafeAreaView
 } from 'react-native';
 import { certificateAPI } from '../services/api';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import { downloadPDF } from '../utils/downloadHelper';
 
 const CertificateView = ({ route, navigation }) => {
     const { id } = route.params;
@@ -120,8 +119,7 @@ const CertificateView = ({ route, navigation }) => {
         `;
 
         try {
-            const { uri } = await Print.printToFileAsync({ html: htmlContent });
-            await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+            await downloadPDF(htmlContent, `${certificate_type}_Certificate_${student_name}.pdf`);
         } catch (error) {
             console.error('Print error:', error);
             Alert.alert('Error', 'Failed to generate PDF');

@@ -8,11 +8,15 @@ import {
     SafeAreaView,
 } from 'react-native';
 import api, { studentAPI } from '../services/api';
+import { downloadPDF } from '../utils/downloadHelper';
+import { TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const FeesScreen = () => {
     const [loading, setLoading] = useState(true);
     const [fees, setFees] = useState([]);
     const [totals, setTotals] = useState({ totalDue: 0, totalPaid: 0, totalPending: 0 });
+    const [studentProfile, setStudentProfile] = useState(null);
 
     useEffect(() => {
         fetchFees();
@@ -30,6 +34,106 @@ const FeesScreen = () => {
         } finally {
             setLoading(false);
         }
+
+        // Fetch profile for receipt info
+        try {
+            const profileRes = await studentAPI.getProfile();
+            if (profileRes.data.success) {
+                setStudentProfile(profileRes.data.data);
+            }
+        } catch (e) {
+            console.log('Error fetching profile for receipt:', e);
+        }
+    };
+
+    const downloadReceipt = async (fee) => {
+        if (fee.status !== 'paid' && fee.amount_paid <= 0) {
+            alert('Receipt only available for paid or partially paid fees');
+            return;
+        }
+
+        const html = `
+            <html>
+            <head>
+                <style>
+                    body { font-family: 'Helvetica', sans-serif; padding: 40px; color: #334155; }
+                    .header { text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; }
+                    .school-name { font-size: 24px; font-weight: bold; color: #1e293b; margin: 0; }
+                    .receipt-title { font-size: 18px; color: #4f46e5; margin-top: 10px; font-weight: bold; text-transform: uppercase; }
+                    
+                    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+                    .info-box { border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; }
+                    .info-label { font-size: 10px; color: #64748b; text-transform: uppercase; font-weight: bold; }
+                    .info-value { font-size: 14px; font-weight: bold; margin-top: 4px; }
+                    
+                    table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+                    th { text-align: left; border-bottom: 2px solid #e2e8f0; padding: 12px; color: #64748b; font-size: 12px; text-transform: uppercase; }
+                    td { padding: 12px; border-bottom: 1px solid #f1f5f9; font-size: 14px; }
+                    
+                    .total-section { text-align: right; margin-top: 20px; }
+                    .total-row { font-size: 18px; font-weight: bold; color: #1e293b; border-top: 2px solid #4f46e5; padding-top: 10px; display: inline-block; min-width: 200px; }
+                    
+                    .paid-stamp { border: 3px solid #10b981; color: #10b981; padding: 10px 20px; border-radius: 8px; font-size: 24px; font-weight: bold; display: inline-block; transform: rotate(-15deg); position: absolute; top: 150px; right: 80px; text-transform: uppercase; }
+                    
+                    .footer { margin-top: 60px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1 class="school-name">SCHOOL ERP SYSTEM</h1>
+                    <div class="receipt-title">Payment Receipt</div>
+                    <div style="font-size: 12px; color: #64748b; margin-top: 5px;">Academic Session: 2023-24</div>
+                </div>
+
+                <div class="paid-stamp">PAID</div>
+
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-label">Student Details</div>
+                        <div class="info-value">${studentProfile ? `${studentProfile.first_name} ${studentProfile.last_name || ''}` : 'Student'}</div>
+                        <div class="info-value">Class: ${studentProfile ? `${studentProfile.class_name} - ${studentProfile.section_name}` : 'N/A'}</div>
+                        <div class="info-value">Adm No: ${studentProfile ? studentProfile.admission_number : 'N/A'}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-label">Receipt Details</div>
+                        <div class="info-value">Date: ${new Date().toLocaleDateString()}</div>
+                        <div class="info-value">Receipt No: RCP-${fee.id.toString().substr(0, 6).toUpperCase()}</div>
+                    </div>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Month</th>
+                            <th style="text-align: right;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>${fee.fee_type_name}</td>
+                            <td style="text-transform: capitalize;">${fee.month} ${fee.year}</td>
+                            <td style="text-align: right; font-weight: bold;">₹${fee.amount_paid}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="total-section">
+                    <div class="total-row">
+                        <span>Paid Amount: </span>
+                        <span>₹${fee.amount_paid}</span>
+                    </div>
+                </div>
+
+                <div class="footer">
+                    This is a computer-generated receipt and does not require a physical signature.<br>
+                    Thank you for your payment.
+                </div>
+            </body>
+            </html>
+        `;
+
+        await downloadPDF(html, `Receipt_${fee.fee_type_name}_${fee.month}.pdf`);
     };
 
     const renderFeeItem = ({ item }) => (
@@ -59,6 +163,15 @@ const FeesScreen = () => {
                     {item.status.toUpperCase()}
                 </Text>
             </View>
+
+            {item.amount_paid > 0 && (
+                <TouchableOpacity
+                    style={styles.downloadIcon}
+                    onPress={() => downloadReceipt(item)}
+                >
+                    <Ionicons name="download-outline" size={20} color="#4f46e5" />
+                </TouchableOpacity>
+            )}
         </View>
     );
 
@@ -208,6 +321,14 @@ const styles = StyleSheet.create({
     statusPending: {
         backgroundColor: '#fee2e2',
         color: '#991b1b',
+    },
+    downloadIcon: {
+        position: 'absolute',
+        bottom: 16,
+        right: 16,
+        padding: 5,
+        backgroundColor: '#f5f3ff',
+        borderRadius: 8,
     },
     emptyText: {
         textAlign: 'center',

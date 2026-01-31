@@ -1,6 +1,5 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Alert, Platform } from 'react-native';
-import { printToFileAsync, printAsync } from 'expo-print';
-import { shareAsync } from 'expo-sharing';
+import { downloadPDF } from '../utils/downloadHelper';
 import api from '../services/api';
 import { useEffect, useState } from 'react';
 
@@ -112,12 +111,7 @@ const Salary = () => {
         `;
 
         try {
-            if (Platform.OS === 'web') {
-                await printAsync({ html });
-            } else {
-                const { uri } = await printToFileAsync({ html });
-                await shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
-            }
+            await downloadPDF(html, `Payslip_${getMonthName(item.month)}_${item.year}.pdf`);
         } catch (error) {
             console.error('PDF Generation Error:', error);
             Alert.alert('Error', 'Failed to generate PDF');

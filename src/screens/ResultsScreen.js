@@ -11,8 +11,7 @@ import {
     Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Print from 'expo-print';
-import * as Sharing from 'expo-sharing';
+import { downloadPDF } from '../utils/downloadHelper';
 import api from '../services/api';
 
 const { width } = Dimensions.get('window');
@@ -206,8 +205,7 @@ const ResultsScreen = ({ navigation, route }) => {
                 </html>
             `;
 
-            const { uri } = await Print.printToFileAsync({ html: htmlContent });
-            await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Download Report Card' });
+            await downloadPDF(htmlContent, `ReportCard_${resultData.first_name}_${resultData.exam_name}.pdf`);
 
         } catch (error) {
             console.error('Download report card error:', error);
