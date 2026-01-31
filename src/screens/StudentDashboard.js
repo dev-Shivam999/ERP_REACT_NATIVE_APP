@@ -42,12 +42,12 @@ const StudentDashboard = ({ navigation }) => {
                 studentAPI.getFees(),
                 studentAPI.getProfile(),
                 studentAPI.getMyHomework(30), // Use new /homework/me endpoint
-                studentAPI.getAttendance(currentMonth, currentYear), // Get current month attendance
-                // Skip notifications for now - endpoint doesn't exist yet
+                studentAPI.getAttendance(currentMonth, currentYear),
+                studentAPI.getNotifications(),
             ];
 
             const results = await Promise.all(promises);
-            const [feeRes, profileRes, homeworkRes, attendanceRes] = results;
+            const [feeRes, profileRes, homeworkRes, attendanceRes, notifRes] = results;
 
             console.log('💰 Fee response:', feeRes.data);
             console.log('👤 Profile response:', profileRes.data);
@@ -89,6 +89,11 @@ const StudentDashboard = ({ navigation }) => {
                     presentDays: attStats.present || 0,
                     totalDays: attStats.total || 0
                 }));
+            }
+
+            if (notifRes && notifRes.data.success) {
+                console.log('🔔 Notifications loaded:', notifRes.data.data.length);
+                setNotifications(notifRes.data.data);
             }
 
             console.log('✅ Dashboard data loaded');
@@ -142,7 +147,7 @@ const StudentDashboard = ({ navigation }) => {
             {/* Stats Grid */}
             <View style={styles.statsGrid}>
                 <TouchableOpacity style={[styles.statCard, styles.statAttendance]} onPress={() => navigation.navigate('Attendance')}>
-                    <Text style={styles.statIcon}>📅</Text>
+                    <Text style={styles.statIcon}>📋</Text>
                     <Text style={styles.statValue}>{stats.attendancePercent}%</Text>
                     <Text style={styles.statLabel}>Attendance</Text>
                 </TouchableOpacity>
@@ -164,7 +169,7 @@ const StudentDashboard = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActions}>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('ActiveExams')}>
-                    <Text style={styles.actionIcon}>📅</Text>
+                    <Text style={styles.actionIcon}>📝</Text>
                     <Text style={styles.actionText}>Exams</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Teachers')}>
@@ -174,6 +179,10 @@ const StudentDashboard = ({ navigation }) => {
                 <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('StudentHomework')}>
                     <Text style={styles.actionIcon}>📝</Text>
                     <Text style={styles.actionText}>Homework</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Results')}>
+                    <Text style={styles.actionIcon}>📊</Text>
+                    <Text style={styles.actionText}>Results</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.actionButton}>
                     <Text style={styles.actionIcon}>🏖️</Text>

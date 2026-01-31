@@ -11,6 +11,8 @@ import {
     Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Print from 'expo-print';
+import * as Sharing from 'expo-sharing';
 import api from '../services/api';
 
 const { width } = Dimensions.get('window');
@@ -80,22 +82,136 @@ const ResultsScreen = ({ navigation, route }) => {
 
     const downloadReportCard = async (sessionId, studentId) => {
         try {
-            Alert.alert(
-                'Download Report Card',
-                'Report card will be downloaded to your device.',
-                [
-                    { text: 'Cancel', style: 'cancel' },
-                    {
-                        text: 'Download',
-                        onPress: () => {
-                            // In a real app, this would trigger a download
-                            Alert.alert('Success', 'Report card downloaded successfully!');
-                        },
-                    },
-                ]
-            );
+            // Ensure we have the details
+            let resultData = selectedResult;
+            if (!resultData || resultData.result_session_id !== sessionId || resultData.student_id !== studentId) {
+                const response = await api.get(`/results/sessions/${sessionId}/students/${studentId}/result`);
+                resultData = response.data.data;
+            }
+
+            if (!resultData) {
+                Alert.alert('Error', 'Could not find result data to download.');
+                return;
+            }
+
+            const htmlContent = `
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Helvetica', sans-serif; padding: 20px; color: #1e293b; }
+                        .header { text-align: center; border-bottom: 2px solid #4f46e5; padding-bottom: 20px; margin-bottom: 20px; }
+                        .school-name { fontSize: 28px; fontWeight: bold; margin: 0; color: #1e293b; text-transform: uppercase; }
+                        .report-title { fontSize: 20px; color: #4f46e5; margin: 10px 0; font-weight: bold; }
+                        
+                        .info-section { display: flex; justify-content: space-between; margin-bottom: 30px; }
+                        .info-box { width: 48%; }
+                        .info-row { margin-bottom: 8px; font-size: 14px; }
+                        .label { font-weight: bold; color: #64748b; margin-right: 5px; }
+                        
+                        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 30px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+                        .summary-item { text-align: center; }
+                        .summary-value { font-size: 18px; font-weight: bold; display: block; }
+                        .summary-label { font-size: 10px; color: #64748b; text-transform: uppercase; }
+                        
+                        table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+                        th { background: #4f46e5; color: white; padding: 12px; text-align: left; font-size: 14px; }
+                        td { border-bottom: 1px solid #e2e8f0; padding: 12px; font-size: 14px; }
+                        tr:nth-child(even) { background: #f8fafc; }
+                        
+                        .grade-badge { padding: 4px 8px; border-radius: 4px; color: white; font-weight: bold; font-size: 12px; display: inline-block; }
+                        
+                        .footer { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .signature-box { width: 200px; text-align: center; border-top: 1px solid #1e293b; padding-top: 10px; font-size: 14px; font-weight: bold; }
+                        
+                        .timestamp { margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1 class="school-name">SCHOOL ERP SYSTEM</h1>
+                        <div class="report-title">REPORT CARD - ${resultData.exam_name}</div>
+                        <div style="font-size: 14px; color: #64748b;">Academic Session: ${resultData.session_name}</div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-box">
+                            <div class="info-row"><span class="label">Student Name:</span> ${resultData.first_name} ${resultData.last_name}</div>
+                            <div class="info-row"><span class="label">Admission No:</span> ${resultData.admission_number}</div>
+                            <div class="info-row"><span class="label">Roll Number:</span> ${resultData.roll_number || 'N/A'}</div>
+                        </div>
+                        <div class="info-box">
+                            <div class="info-row"><span class="label">Class:</span> ${resultData.class_name}</div>
+                            <div class="info-row"><span class="label">Section:</span> ${resultData.section_name}</div>
+                        </div>
+                    </div>
+
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-value">${resultData.obtained_marks} / ${resultData.total_marks}</span>
+                            <span class="summary-label">Total Marks</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value">${resultData.percentage}%</span>
+                            <span class="summary-label">Percentage</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value">${resultData.grade}</span>
+                            <span class="summary-label">Overal Grade</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-value">#${resultData.rank}</span>
+                            <span class="summary-label">Class Rank</span>
+                        </div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Code</th>
+                                <th>Max Marks</th>
+                                <th>Obtained</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${resultData.subject_marks.map(sub => `
+                                <tr>
+                                    <td style="font-weight: bold;">${sub.subject_name}</td>
+                                    <td>${sub.subject_code || '-'}</td>
+                                    <td>${sub.max_marks}</td>
+                                    <td>${sub.obtained_marks}</td>
+                                    <td>${sub.percentage}%</td>
+                                    <td>
+                                        <div class="grade-badge" style="background-color: ${getGradeColor(sub.grade)};">
+                                            ${sub.grade}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <div class="footer">
+                        <div class="signature-box">Class Teacher</div>
+                        <div class="signature-box">Exam Controller</div>
+                        <div class="signature-box">Principal</div>
+                    </div>
+
+                    <div class="timestamp">
+                        Report generated on ${new Date().toLocaleString()} | Computer Generated Document
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const { uri } = await Print.printToFileAsync({ html: htmlContent });
+            await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf', dialogTitle: 'Download Report Card' });
+
         } catch (error) {
-            Alert.alert('Error', 'Failed to download report card.');
+            console.error('Download report card error:', error);
+            Alert.alert('Error', 'Failed to generate report card PDF.');
         }
     };
 

@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text, View, StyleSheet } from 'react-native';
 import Toast from 'react-native-toast-message';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Import screens
 import LoginScreen from '../screens/LoginScreen';
@@ -60,7 +61,7 @@ const StudentTabs = () => (
             name="Attendance"
             component={Attendance}
             options={{
-                tabBarIcon: ({ focused }) => <TabIcon icon="📅" label="Attendance" focused={focused} />,
+                tabBarIcon: ({ focused }) => <TabIcon icon="📋" label="Attendance" focused={focused} />,
             }}
         />
         <Tab.Screen
@@ -138,10 +139,48 @@ const PlaceholderScreen = (name) => () => (
 
 // Main App Navigator
 const AppNavigator = () => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [userRole, setUserRole] = useState(null);
+
+    useEffect(() => {
+        checkSession();
+    }, []);
+
+    const checkSession = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const userData = await AsyncStorage.getItem('user');
+
+            if (token && userData) {
+                const user = JSON.parse(userData);
+                setUserRole(user.role);
+            }
+        } catch (error) {
+            console.error('Session check error:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <View style={styles.loadingContainer}>
+                <Text style={{ fontSize: 40 }}>🏫</Text>
+                <Text style={styles.loadingText}>Loading Session...</Text>
+            </View>
+        );
+    }
+
     return (
         <NavigationContainer>
             <Stack.Navigator
-                initialRouteName="Login"
+                initialRouteName={
+                    userRole === 'student' || userRole === 'parent'
+                        ? 'StudentTabs'
+                        : userRole === 'teacher'
+                            ? 'TeacherTabs'
+                            : 'Login'
+                }
                 screenOptions={{
                     headerTitleAlign: 'center',
                     headerStyle: { backgroundColor: '#fff' },
@@ -275,6 +314,18 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#9ca3af',
         marginTop: 8,
+    },
+    loadingContainer: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#fff',
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 18,
+        color: '#4f46e5',
+        fontWeight: '600',
     },
 });
 
