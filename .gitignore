@@ -8,7 +8,7 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
-
+test-7c438-firebase-adminsdk-fbsvc-d847dfffa2.json
 # Native
 .kotlin/
 *.orig.*

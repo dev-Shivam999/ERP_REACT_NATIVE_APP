@@ -6,8 +6,12 @@ import {
     StyleSheet,
     TouchableOpacity,
     RefreshControl,
+    Alert,
 } from 'react-native';
-import { teacherAPI } from '../services/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { teacherAPI, authAPI } from '../services/api';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 const TeacherDashboard = ({ navigation }) => {
     const [user, setUser] = useState(null);
@@ -19,6 +23,7 @@ const TeacherDashboard = ({ navigation }) => {
         leaveBalance: 0,
     });
     const [todaySchedule, setTodaySchedule] = useState([]);
+    const [hasFcmToken, setHasFcmToken] = useState(true);
 
     useEffect(() => {
         loadUser();
@@ -27,6 +32,23 @@ const TeacherDashboard = ({ navigation }) => {
 
     const fetchDashboardStats = async () => {
         try {
+            // Check FCM token status - update bell icon state
+            try {
+                const fcmCheckRes = await authAPI.checkFcmToken();
+                if (fcmCheckRes.data.success) {
+                    const hasToken = fcmCheckRes.data.data.hasToken;
+                    setHasFcmToken(hasToken);
+                    console.log('🔔 FCM Token status:', hasToken);
+
+                    // Auto-request permission if token is missing
+                    if (!hasToken) {
+                        requestNotificationPermission();
+                    }
+                }
+            } catch (fcmError) {
+                console.error('FCM token check failed:', fcmError);
+            }
+
             const response = await teacherAPI.getDashboardStats();
             if (response.data.success) {
                 const data = response.data.data;
@@ -76,11 +98,84 @@ const TeacherDashboard = ({ navigation }) => {
         }
     };
 
+    // Request notification permission and store FCM token
+    const requestNotificationPermission = async () => {
+        try {
+            if (!Device.isDevice) {
+                Alert.alert('Notice', 'Push notifications require a physical device');
+                return;
+            }
+
+            // Check if running in Expo Go (push notifications don't work there)
+            const isExpoGo = !Device.isDevice || (await Notifications.getExpoPushTokenAsync({ projectId: 'fecfe46d-66db-4612-8920-5285a69e0d1c' }).catch(() => null)) === null;
+
+            const { status: existingStatus } = await Notifications.getPermissionsAsync();
+            let finalStatus = existingStatus;
+
+            if (existingStatus !== 'granted') {
+                const { status } = await Notifications.requestPermissionsAsync();
+                finalStatus = status;
+            }
+
+            if (finalStatus !== 'granted') {
+                Alert.alert(
+                    'Permission Required',
+                    'Please enable notifications to receive important updates.',
+                    [{ text: 'OK' }]
+                );
+                return;
+            }
+
+            // Get the token
+            const tokenData = await Notifications.getExpoPushTokenAsync({
+                projectId: 'fecfe46d-66db-4612-8920-5285a69e0d1c',
+            });
+
+            const expoPushToken = tokenData.data;
+            console.log('Expo Push Token:', expoPushToken);
+
+            // Send token to server
+            const response = await authAPI.updateFcmToken(expoPushToken);
+
+            if (response.data.success) {
+                setHasFcmToken(true);
+                Alert.alert('Success', 'Notifications enabled successfully!');
+            } else {
+                Alert.alert('Error', 'Failed to enable notifications. Please try again.');
+            }
+        } catch (error) {
+            console.error('Register push notification error:', error);
+            // Check if it's the Expo Go limitation error
+            if (error.message?.includes('expo-notifications') || error.message?.includes('Expo Go')) {
+                Alert.alert(
+                    'Expo Go Limitation',
+                    'Push notifications are not available in Expo Go. They will work in your production build (EAS).',
+                    [{ text: 'OK' }]
+                );
+            } else {
+                Alert.alert('Error', 'Failed to enable notifications. Please try again.');
+            }
+        }
+    };
+
     return (
         <ScrollView
             style={styles.container}
             refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
+            {/* Header with Notification Bell */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Dashboard</Text>
+                <TouchableOpacity
+                    style={styles.bellButton}
+                    onPress={hasFcmToken ? null : requestNotificationPermission}
+                    disabled={hasFcmToken}
+                >
+                    <Text style={styles.bellIcon}>{hasFcmToken ? '🔔' : '🔕'}</Text>
+                    {!hasFcmToken && <View style={styles.bellBadge} />}
+                </TouchableOpacity>
+            </View>
+
             {/* Welcome Card */}
             <View style={styles.welcomeCard}>
                 <View style={styles.avatar}>
@@ -189,6 +284,35 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f8fafc',
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingTop: 16,
+        paddingBottom: 8,
+    },
+    headerTitle: {
+        fontSize: 24,
+        fontWeight: '700',
+        color: '#1f2937',
+    },
+    bellButton: {
+        position: 'relative',
+        padding: 8,
+    },
+    bellIcon: {
+        fontSize: 28,
+    },
+    bellBadge: {
+        position: 'absolute',
+        top: 6,
+        right: 6,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#ef4444',
     },
     welcomeCard: {
         flexDirection: 'row',

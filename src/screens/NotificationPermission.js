@@ -87,7 +87,7 @@ const NotificationPermission = ({ navigation, route }) => {
 
             // Get the token
             const tokenData = await Notifications.getExpoPushTokenAsync({
-                projectId: 'your-project-id', // Replace with your expo project ID if needed
+                projectId: 'fecfe46d-66db-4612-8920-5285a69e0d1c',
             });
 
             const expoPushToken = tokenData.data;
@@ -100,11 +100,11 @@ const NotificationPermission = ({ navigation, route }) => {
                 setHasToken(true);
                 navigateToApp();
             } else {
-                Alert.alert('Error', 'Failed to register for notifications. Please try again.');
+                Alert.alert('Error', response.data.message || 'Failed to register for notifications. Please try again.');
             }
         } catch (error) {
             console.error('Register push notification error:', error);
-            Alert.alert('Error', 'Failed to register for notifications. Please try again.');
+            Alert.alert('Error', error.message || 'Failed to register for notifications. Please try again.');
         } finally {
             setRequesting(false);
         }
