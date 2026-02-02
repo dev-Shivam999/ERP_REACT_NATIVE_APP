@@ -278,7 +278,7 @@ const StudentDashboard = ({ navigation }) => {
                     <Text style={styles.actionIcon}>📊</Text>
                     <Text style={styles.actionText}>Results</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
+                <TouchableOpacity style={styles.actionButton} onPress={() => navigation.navigate('Holidays')}>
                     <Text style={styles.actionIcon}>🏖️</Text>
                     <Text style={styles.actionText}>Holidays</Text>
                 </TouchableOpacity>

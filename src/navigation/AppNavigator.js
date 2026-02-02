@@ -31,10 +31,10 @@ import AdminCertificateRequests from '../screens/AdminCertificateRequests';
 import CertificateView from '../screens/CertificateView';
 import StudentProfile from '../screens/StudentProfile';
 import NotificationPermission from '../screens/NotificationPermission';
+import Holidays from '../screens/Holidays';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
 // Tab Icon component
 const TabIcon = ({ icon, label, focused }) => (
     <View style={styles.tabItem}>
@@ -273,6 +273,11 @@ const AppNavigator = () => {
                     name="CertificateView"
                     component={CertificateView}
                     options={{ title: 'Certificate' }}
+                />
+                <Stack.Screen
+                    name="Holidays"
+                    component={Holidays}
+                    options={{ title: 'Holidays' }}
                 />
             </Stack.Navigator>
             <Toast />

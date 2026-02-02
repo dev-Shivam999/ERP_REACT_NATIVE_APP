@@ -4,9 +4,9 @@ import * as Network from 'expo-network';
 import Toast from 'react-native-toast-message';
 
 
-// const API_BASE_URL = 'http://localhost:5000/api';
-// const API_BASE_URL = 'https://erp-backend-97nf.onrender.com/api
-const API_BASE_URL = 'https://specially-isle-gorgeous-html.trycloudflare.com/api'
+const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://erp-backend-97nf.onrender.com/api'
+// const API_BASE_URL = 'https://specially-isle-gorgeous-html.trycloudflare.com/api'
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -113,6 +113,12 @@ export const examAPI = {
     getActiveExams: () => api.get('/exams/active'),
     getAdmitCard: (examId, studentId) => api.get(`/exams/${examId}/admit-card`, { params: studentId ? { studentId } : {} }),
     getExamStudents: (examId, params) => api.get(`/exams/${examId}/admit-card-status`, { params }),
+};
+
+// Calendar/Holiday APIs
+export const calendarAPI = {
+    getHolidays: (month, year) => api.get('/calendar/holidays', { params: { month, year } }),
+    getEvents: (month, year) => api.get('/calendar/events', { params: { month, year } }),
 };
 
 export default api;
